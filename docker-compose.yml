@@ -1,0 +1,37 @@
+version: "3"
+services:
+  proto:
+    command: ./proto/bin/protoc.sh
+    build:
+      context: ./proto
+    volumes:
+      - .:/proto
+  server:
+    command: ./bin/server.sh
+    build:
+      context: ./server
+    volumes:
+      - ./server:/go/src/try-grpc
+    ports:
+      - "9090:9090"
+    depends_on:
+      - proto
+  envoy:
+    build:
+      context: ./envoy
+    ports:
+      - "8080:8080"
+    links:
+      - server
+  client:
+    command: ./bin/client.sh
+    build:
+      context: ./client
+    volumes:
+      - ./client:/client
+      - /client/node_modules
+    depends_on:
+      - proto
+    ports:
+      - "3000:3000"
+    tty: true
